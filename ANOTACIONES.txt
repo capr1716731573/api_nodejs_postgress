@@ -1,0 +1,9 @@
+1) npm init : para inciar el proyecto en NODEJS y anotar configuraciones, ahi se crean un archivo package.json con toda la configuracion realizada
+2) npm install express --save : instalamos express para poder crear las API REST
+3) node app : correr servidor de  nodejs
+3) npm install -g nodemon : instalamos NODEMON: libreria que sirve para no estar bajando y subiendo el servidor (node app) al momento de cambiar las rutas de la API
+Para ejecutar nodemon, vamos al archivo package.json y en scripts agregamos esta linea 'nodemon app.js' y bajamos el servidor y luego ejecutamos la app con npm start
+4) el status en la ruta se refleja en POSTMAN.. tomar en cuenta
+
+5) Mongodb: se guarda la informacion en la carpeta data/db, y se corre en windows con el mongob.exe o en el cmd mongod
+6) Robomong : Herramiento para manjear mongodb 
