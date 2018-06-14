@@ -7,3 +7,12 @@ Para ejecutar nodemon, vamos al archivo package.json y en scripts agregamos esta
 
 5) Mongodb: se guarda la informacion en la carpeta data/db, y se corre en windows con el mongob.exe o en el cmd mongod
 6) Robomong : Herramiento para manjear mongodb 
+7) npm Mongoose: es como el ODBC para mongodb desde Node js
+Se puede instalar extensiones de moongosse para validaciones como por ejemplo npm install mongoose-unique-validator --save 
+8) archivo gitignore: archivo donde estan los archivos que github debe ignorar al momento de subir un respaldo al servidor de versiones
+9) Instalo la libreria de js bcrypt.js que sirve para encriptar cadenas en una sola via, osea que una vez encriptada no se la puede pasar a su forma original. npm install bcryptjs --save
+10) Instalo jsonwebtoken.. npm install jsonwebtoken --save
+
+NUEVOS COMANDOS PARA INCIAIR EL PROYECTO 
+- Nodejs //// npm start
+- Mongodb //  mongob
