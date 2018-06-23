@@ -8,6 +8,11 @@ var bodyParser = require('body-parser');
 var appRoutes = require('./routes/app');
 var usuarioRoutes = require('./routes/usuario');
 var loginRoutes = require('./routes/login');
+var hospitalRoutes = require('./routes/hospital');
+var medicoRoutes = require('./routes/medico');
+var busquedaRoutes = require('./routes/busquedatodo');
+var uploadRoutes = require('./routes/upload');
+var desplegarImagenesuploadRoutes = require('./routes/desplegar_imagenes');
 
 //Inicializar variables 
 var app = express();
@@ -29,7 +34,12 @@ moongose.connection.openUri('mongodb://localhost:27017/hospitalDB', (err, res) =
 //Rutas
 //se declara middleware: codigo que se ejecuta antes de que se resuelvan otras rutas
 app.use('/usuario', usuarioRoutes); // en el POSTMAN yo pongo solo este ruta localhost:3000/usuario y lo unico que difirencia es POST GET PUT DELETE
-app.use('/login', loginRoutes)
+app.use('/hospital', hospitalRoutes);
+app.use('/medico', medicoRoutes);
+app.use('/login', loginRoutes);
+app.use('/busqueda', busquedaRoutes);
+app.use('/upload', uploadRoutes);
+app.use('/img', desplegarImagenesuploadRoutes);
 app.use('/', appRoutes);
 
 //Configuracion 2 ->Escuchar peticiones

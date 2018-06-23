@@ -1,48 +1,48 @@
 var express = require('express');
-var bcryptjs = require('bcryptjs');
-var jwt = require('jsonwebtoken');
-
+var app = express();
 var SEED = require('../config/config').SEED;
 var rows = require('../config/config').ROWS_POR_PAG;
-
 var mdAuthenticationJWT = require('../middlewares/authentication');
 
-var app = express();
-
 //Configuracion1 --> importo el modelo de usuario en la carpeta models 
-var Usuario = require('../models/usuario');
+var Medico = require('../models/medico');
 
 //Rutas
 // ==========================================
-// Obtener todos los usuarios
+// Obtener todos los medicos
 // ========================================== 
 app.get('/', (req, res, next) => {
     //parametro que envio en el requeest para ver a partir de que fila empezar
     var desde = req.query.desde || 0;
     desde = Number(desde);
-    // Aqui solo envio los datos que quiero mostrar de la entidad o coleccion usuario
-    // en este caso no quise traer en la consulta el password
-    Usuario.find({}, 'nombre email img role')
-
-    .skip(desde)
+    // Aqui solo envio los datos que quiero mostrar de la entidad o coleccion Medico
+    Medico.find({}, 'nombre img usuario hospital')
+        .skip(desde)
         //numero de lineas que quiero que despliegue acorde al parametro "desde"
         .limit(rows)
+        //como esta es una coleccion o entidad relacionada con la coleccion o entidad usuario
+        // con populate digo que me envie toda la informacion del registro del objeto usuario
+        //y al lado los campos de esa coleccion que quiero usar
+        //el primero es igual al nombre de la propiedad medicoSchema
+        .populate('usuario', 'nombre email')
+        ////el primero es igual al nombre de la propiedad medicoSchema
+        // lo mismo de arriba con el objeto hospital
+        .populate('hospital', 'nombre')
         .exec(
-            (err, usuarios) => { // <--- linea 17
+            (err, medicos) => { // <--- linea 17
 
                 if (err) {
                     return res.status(500).json({
                         ok: false,
-                        mensaje: 'Error cargando usuario',
+                        mensaje: 'Error cargando Medico',
                         errors: err
                     });
                 }
 
-                //aqui trabajo sobre la funcion count que envia el total de registros del momgoDB
-                Usuario.count({}, (err, total) => {
+                Medico.count({}, (err, total) => {
                     res.status(200).json({
                         ok: true,
-                        usuarios: usuarios, // < ----- si no da error retorno el usuarios de la linea #17
+                        medicos: medicos, // < ----- si no da error retorno el usuarios de la linea #17
                         total_registros: total
                     });
                 });
@@ -50,15 +50,14 @@ app.get('/', (req, res, next) => {
 
 
 
-
             });
-});
 
-//OJO EL TOKEN SE ENVIA POR URL
+
+});
 
 
 // ==========================================
-// Crear un nuevo usuario
+// Crear un nuevo medicos
 // ==========================================
 
 app.post('/', mdAuthenticationJWT.verificarToken, (req, res) => {
@@ -66,27 +65,24 @@ app.post('/', mdAuthenticationJWT.verificarToken, (req, res) => {
     //Recibo los datos en el body y con el body parser me lo transforma a JSON
     var body = req.body;
 
-    var usuario = new Usuario({
+    var medico = new Medico({
         nombre: body.nombre,
-        email: body.email,
-        password: bcryptjs.hashSync(body.password, 10),
-        img: body.img,
-        role: body.role
+        usuario: req.usuario._id,
+        hospital: body.hospital
     });
 
-    usuario.save((err, usuarioGuardado) => {
+    medico.save((err, medicoGuardado) => {
         if (err) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'Error al crear usuario',
+                mensaje: 'Error al crear medico',
                 errors: err
             });
         }
 
         res.status(201).json({
             ok: true,
-            usuario: usuarioGuardado,
-            usuarioToken: req.usuario
+            medico: medicoGuardado
         });
     });
 
@@ -94,7 +90,7 @@ app.post('/', mdAuthenticationJWT.verificarToken, (req, res) => {
 });
 
 // ==========================================
-// Actualizar un usuario
+// Actualizar un medico
 // ==========================================
 
 app.put('/:id', mdAuthenticationJWT.verificarToken, (req, res) => {
@@ -103,20 +99,20 @@ app.put('/:id', mdAuthenticationJWT.verificarToken, (req, res) => {
     var id = req.params.id;
 
     //aplico este metodo de moongose para saber si el usuario existe
-    Usuario.findById(id, (err, usuario) => {
+    Medico.findById(id, (err, medico) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al buscar usuario',
+                mensaje: 'Error al buscar medico',
                 errors: err
             });
         }
 
-        if (!usuario) {
+        if (!medico) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'El usuario con el id ' + id + ' no existe',
-                errors: { message: 'No existe un usuario con es ID' }
+                mensaje: 'El medico con el id ' + id + ' no existe',
+                errors: { message: 'No existe un medico con es ID' }
             });
         }
 
@@ -126,28 +122,23 @@ app.put('/:id', mdAuthenticationJWT.verificarToken, (req, res) => {
 
         //aqui solo voy a cambiar estos 3 datos la imagen ya la cambio despues
         //lo mismo el password
-        usuario.nombre = body.nombre;
-        usuario.email = body.email;
-        usuario.role = body.role;
+        medico.nombre = body.nombre;
+        medico.usuario = req.usuario._id;
+        medico.hospital = body.hospital;
 
-        usuario.save((err, usuarioGuardado) => {
+        medico.save((err, medicoGuardado) => {
 
             if (err) {
                 return res.status(400).json({
                     ok: false,
-                    mensaje: 'Error al actualizar usuario',
+                    mensaje: 'Error al actualizar medico',
                     errors: err
                 });
             }
 
-            //con este codigo me sobreescribe la contrasena pero solo para mostrar 
-            // ya paso el save
-            usuario.password = ":)";
-
             res.status(200).json({
                 ok: true,
-                usuario: usuarioGuardado,
-                usuarioToken: req.usuario
+                medico: medicoGuardado
             });
 
         });
@@ -160,34 +151,33 @@ app.put('/:id', mdAuthenticationJWT.verificarToken, (req, res) => {
 
 
 // ==========================================
-// Borrar un usuario
+// Borrar un medico
 // ==========================================
 app.delete('/:id', mdAuthenticationJWT.verificarToken, (req, res) => {
     //capturo el id
     var id = req.params.id;
 
     //metodo que elimino
-    Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
+    Medico.findByIdAndRemove(id, (err, medicoBorrado) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al borrar usuario',
+                mensaje: 'Error al borrar medico',
                 errors: err
             });
         }
 
-        if (!usuarioBorrado) {
+        if (!medicoBorrado) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'No existe usuario con ese id',
-                errors: { message: 'No existe usuario con ese id' }
+                mensaje: 'No existe Medico con ese id',
+                errors: { message: 'No existe Medico con ese id' }
             });
         }
 
         res.status(200).json({
             ok: true,
-            usuario: usuarioBorrado,
-            usuarioToken: req.usuario
+            medico: medicoBorrado
         });
 
 
@@ -196,6 +186,5 @@ app.delete('/:id', mdAuthenticationJWT.verificarToken, (req, res) => {
 
 
 });
-
 
 module.exports = app;
