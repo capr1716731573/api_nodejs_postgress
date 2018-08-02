@@ -12,7 +12,17 @@ Se puede instalar extensiones de moongosse para validaciones como por ejemplo np
 8) archivo gitignore: archivo donde estan los archivos que github debe ignorar al momento de subir un respaldo al servidor de versiones
 9) Instalo la libreria de js bcrypt.js que sirve para encriptar cadenas en una sola via, osea que una vez encriptada no se la puede pasar a su forma original. npm install bcryptjs --save
 10) Instalo jsonwebtoken.. npm install jsonwebtoken --save
+11) Habilitar CORS
+	https://enable-cors.org/server.html ---> selecicionar EXPRESS JS
+Copiar 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
+
+	
 NUEVOS COMANDOS PARA INCIAIR EL PROYECTO 
 - Nodejs //// npm start
 - Mongodb //  mongob

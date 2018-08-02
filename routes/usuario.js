@@ -22,7 +22,7 @@ app.get('/', (req, res, next) => {
     desde = Number(desde);
     // Aqui solo envio los datos que quiero mostrar de la entidad o coleccion usuario
     // en este caso no quise traer en la consulta el password
-    Usuario.find({}, 'nombre email img role')
+    Usuario.find({}, 'nombre email img role google')
 
     .skip(desde)
         //numero de lineas que quiero que despliegue acorde al parametro "desde"
@@ -60,8 +60,8 @@ app.get('/', (req, res, next) => {
 // ==========================================
 // Crear un nuevo usuario
 // ==========================================
-
-app.post('/', mdAuthenticationJWT.verificarToken, (req, res) => {
+//app.post('/', mdAuthenticationJWT.verificarToken
+app.post('/', (req, res) => {
 
     //Recibo los datos en el body y con el body parser me lo transforma a JSON
     var body = req.body;
@@ -97,7 +97,10 @@ app.post('/', mdAuthenticationJWT.verificarToken, (req, res) => {
 // Actualizar un usuario
 // ==========================================
 
-app.put('/:id', mdAuthenticationJWT.verificarToken, (req, res) => {
+//[mdAuthenticationJWT.verificarToken, mdAuthenticationJWT.verificarADMIN_ROLE/]
+//son middlewares de validaciones, donde si dan true realiza las acciones caso contrario no 
+
+app.put('/:id', [mdAuthenticationJWT.verificarToken, mdAuthenticationJWT.verificarADMIN_o_MISMO_USUARIO], (req, res) => {
     //con req.params.PARAMETRO .. recibe el parametro que envio en la peticion PUT con el campo id (/:id) que es igual al nombre del modelo
     //
     var id = req.params.id;
@@ -162,7 +165,7 @@ app.put('/:id', mdAuthenticationJWT.verificarToken, (req, res) => {
 // ==========================================
 // Borrar un usuario
 // ==========================================
-app.delete('/:id', mdAuthenticationJWT.verificarToken, (req, res) => {
+app.delete('/:id', [mdAuthenticationJWT.verificarToken, mdAuthenticationJWT.verificarADMIN_o_MISMO_USUARIO], (req, res) => {
     //capturo el id
     var id = req.params.id;
 

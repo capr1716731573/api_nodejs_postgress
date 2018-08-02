@@ -5,6 +5,7 @@ var jwt = require('jsonwebtoken');
 var SEED = require('../config/config').SEED;
 //GOOGLE CLIENTE ID
 var CLIENT_ID_GOOGLE = require('../config/config').CLIENT_ID_GOOGLE;
+var SECRET_ID_CLIENTE_GOOGLE = require('../config/config').SECRET_ID_CLIENTE_GOOGLE;
 
 var app = express();
 
@@ -13,25 +14,40 @@ var Usuario = require('../models/usuario');
 
 //Google
 const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client(CLIENT_ID_GOOGLE);
+const cloAuth2Clientient = new OAuth2Client(CLIENT_ID_GOOGLE);
+
+//Importo Middlewar
+var mdAutenticacion = require('../middlewares/authentication');
+
+//=====================================================
+//Renovar Token
+//=====================================================
+app.get('/renovartoken', mdAutenticacion.verificarToken, (req, res) => {
+    //Vuelvo a generar token
+    var token = jwt.sign({ usuario: req.usuario }, SEED, { expiresIn: 14400 })
+    res.status(200).json({
+        ok: true,
+        token: token
+    });
+
+})
 
 //=====================================================
 //Auntenticacion de Google
 //=====================================================
 //Async --> Funcion que retorna una promesa 
 async function verify(token_google) {
-    const ticket = await client.verifyIdToken({
+
+    const ticket = await cloAuth2Clientient.verifyIdToken({
         idToken: token_google,
-        audience: CLIENT_ID_GOOGLE, // Specify the CLIENT_ID of the app that accesses the backend
-        // Or, if multiple clients access the backend:
-        //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+        audience: CLIENT_ID_GOOGLE
     });
-    const informacion_user_google = ticket.getPayload(); //get payload brinda la informaicon de google
-    //const userid = payload['sub'];
-    // If request specified a G Suite domain:
-    //const domain = payload['hd'];
+
+    const informacion_user_google = ticket.getPayload();
+
 
     return {
+
         nombre: informacion_user_google.name,
         email: informacion_user_google.email,
         img: informacion_user_google.picture,
@@ -42,17 +58,22 @@ async function verify(token_google) {
 
 
 app.post('/google', async(req, res) => {
-    var token_google = req.body.token_google;
+    var token_google = req.body.token_google || '';
+
+
     //await me dice que espere a que esa funcion retorne la respues y esa respuesta sea asignada a googleUser
     //CASO CONTRARIO RETORNO EL ERROR
-    var googleUser = await verify(token_google)
-        .catch(e => {
-            return res.status(403).json({
-
-                ok: false,
-                mensaje: 'TOKEN DE GOOGLE NO VALIDO'
-            });
+    var googleUser;
+    try {
+        googleUser = await verify(token_google);
+    } catch (error) {
+        return res.status(403).send({
+            ok: false,
+            mensaje: 'Token no válida',
+            error: error.message
         });
+    }
+
 
     //Verificar si el correo de ese usuario de google ya existe en la base de datos
     Usuario.findOne({ email: googleUser.email }, (err, usuarioDB) => {
@@ -61,7 +82,7 @@ app.post('/google', async(req, res) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    mesaje: 'Error al buscar usuario - Server'
+                    mensaje: 'Error al buscar usuario - Server'
                 });
             }
         }
@@ -84,7 +105,8 @@ app.post('/google', async(req, res) => {
                     ok: true,
                     usuario: usuarioDB,
                     token: token, // con este valor vamos a la pagina del jsonwebtoken y nos muestra lo que dice todo es codigo del jsonwebtoken y si es valido o no
-                    id: usuarioDB.id
+                    id: usuarioDB.id,
+                    menu: obtenerMenu(usuarioDB.role)
                 });
             }
         } else {
@@ -106,7 +128,8 @@ app.post('/google', async(req, res) => {
                     ok: true,
                     usuario: usuarioDB,
                     token: token, // con este valor vamos a la pagina del jsonwebtoken y nos muestra lo que dice todo es codigo del jsonwebtoken y si es valido o no
-                    id: usuarioDB.id
+                    id: usuarioDB._id,
+                    menu: obtenerMenu(usuarioDB.role)
                 });
             });
 
@@ -114,13 +137,6 @@ app.post('/google', async(req, res) => {
 
     });
 
-    return res.status(200).json({
-
-        ok: true,
-        mensaje: 'OK GOOGLE',
-        googleUser: googleUser
-
-    });
 
 });
 
@@ -147,7 +163,7 @@ app.post('/', (req, res) => {
         if (!usuarioDB) {
             return res.status(400).json({
                 ok: false,
-                mesaje: 'Credenciales incorrectas - email',
+                mensaje: 'Credenciales incorrectas - email',
                 errors: err
             });
         }
@@ -156,7 +172,7 @@ app.post('/', (req, res) => {
         if (!bcryptjs.compareSync(body.password, usuarioDB.password)) {
             return res.status(400).json({
                 ok: false,
-                mesaje: 'Credenciales incorrectas - password',
+                mensaje: 'Credenciales incorrectas - password',
                 errors: err
             });
         }
@@ -170,7 +186,8 @@ app.post('/', (req, res) => {
             ok: true,
             usuario: usuarioDB,
             token: token, // con este valor vamos a la pagina del jsonwebtoken y nos muestra lo que dice todo es codigo del jsonwebtoken y si es valido o no
-            id: usuarioDB.id
+            id: usuarioDB.id,
+            menu: obtenerMenu(usuarioDB.role)
         });
     });
 
@@ -178,7 +195,39 @@ app.post('/', (req, res) => {
 
 });
 
+function obtenerMenu(ROLE) {
+    var menu = [{
+            titulo: 'Principal',
+            icono: 'mdi mdi-gauge',
 
+            submenu: [
+                { titulo: 'Dashboard', url: '/dashboard' },
+                { titulo: 'ProgressBar', url: '/progress' },
+                { titulo: 'Gráficas', url: '/graficas1' },
+                { titulo: 'Promesas', url: '/promesas' },
+                { titulo: 'Rsjx', url: '/rsjx' }
+            ]
+
+        },
+        {
+            titulo: 'Mantenimiento',
+            icono: 'mdi mdi-folder-lock-open',
+            submenu: [
+                //{ titulo: 'Usuarios', url: '/usuarios' }, solo se muestra si es ADMIN_ROLE
+                { titulo: 'Hospitales', url: '/hospitales' },
+                { titulo: 'Medicos', url: '/medicos' },
+            ]
+        }
+
+    ];
+
+    //aqui valido si es admin o user role
+    if (ROLE === 'ADMIN_ROLE') {
+        //unshift lo pone al elemento del objeto json al principio de la linea
+        menu[1].submenu.unshift({ titulo: 'Usuarios', url: '/usuarios' });
+    }
+    return menu;
+}
 
 //tengo que exportar para usar este archivo en otro lugar
 module.exports = app;

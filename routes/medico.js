@@ -57,6 +57,45 @@ app.get('/', (req, res, next) => {
 
 
 // ==========================================
+// Obtener un medico po ID
+// ========================================== 
+
+app.get('/:id', (req, res) => {
+    var id = req.params.id;
+    Medico.findById(id)
+        // voy a popular la tabla usuario con los campos nombre img email
+        .populate('usuario', 'nombre img email')
+        // voy a popular la tabla hospital con todos los campos
+        .populate('hospital')
+        .exec((err, medico) => {
+
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al buscar medico',
+                    errors: err
+                });
+            }
+
+            if (!medico) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'El medico con el id ' + id + 'no existe ',
+                    errors: {
+                        message: 'No existe un medico con ese ID '
+                    }
+                });
+            }
+
+            res.status(200).json({
+                ok: true,
+                medico: medico
+            });
+
+        })
+});
+
+// ==========================================
 // Crear un nuevo medicos
 // ==========================================
 

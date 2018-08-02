@@ -12,7 +12,7 @@ exports.verificarToken = function(req, res, next) {
 
     jwt.verify(token, SEED, (err, decode) => {
         if (err) {
-            return res.status(500).json({
+            return res.status(401).json({
                 ok: false,
                 mensaje: 'Token Incorrecto',
                 errors: err
@@ -25,5 +25,39 @@ exports.verificarToken = function(req, res, next) {
         next();
 
     });
+
+};
+
+//VERIFICA SI EL USUARIO LOGUEADO ES ADMINISTRADOR ADMIN_ROLE
+exports.verificarADMIN_ROLE = function(req, res, next) {
+    var usuario = req.usuario;
+    if (usuario.role === 'ADMIN_ROLE') {
+        next();
+        return;
+    } else {
+        return res.status(401).json({
+            ok: false,
+            mensaje: 'Token Incorrecto - No es administrador',
+            errors: { message: "No es administrador, no puede realizar esa accion" }
+        });
+    }
+
+};
+
+//VERIFICA SI EL USUARIO LOGUEADO ES ADMINISTRADOR ADMIN_ROLE
+exports.verificarADMIN_o_MISMO_USUARIO = function(req, res, next) {
+    var usuario = req.usuario;
+    var id = req.params.id;
+
+    if (usuario.role === 'ADMIN_ROLE' || usuario._id === id) {
+        next();
+        return;
+    } else {
+        return res.status(401).json({
+            ok: false,
+            mensaje: 'Token Incorrecto - No es administrador, ni el mismo usuario',
+            errors: { message: "No es administrador, no puede realizar esa accion" }
+        });
+    }
 
 };

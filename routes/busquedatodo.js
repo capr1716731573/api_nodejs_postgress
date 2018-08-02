@@ -80,7 +80,7 @@ function buscarHospitales(palabrabusqueda, expresionregular) {
     return new Promise((resolve, reject) => { // Retorno una promesa de la funcion
         Hospital.find({ nombre: expresionregular }) //El campo nombre de la coleccion o tabla Medicos es donde se va a comparar el parametro de busqueda
             //Como va relacionado la tabla Medico con Usuario, quiero que en ves de que solo me salga el id del usuario, me salga los campos nombre email
-            .populate('usuario', 'nombre email')
+            .populate('usuario', 'nombre email img')
             .exec((err, hospitales_arreglo) => {
                 if (err) {
                     reject('Error al cargar datos de Hospitales', err);
@@ -96,7 +96,7 @@ function buscarMedicos(palabrabusqueda, expresionregular) {
     return new Promise((resolve, reject) => { // Retorno una promesa de la funcion
         Medico.find({ nombre: expresionregular }) //El campo nombre de la coleccion o tabla Medicos es donde se va a comparar el parametro de busqueda
             //Como va relacionado la tabla Medico con Usuario, quiero que en ves de que solo me salga el id del usuario, me salga los campos nombre email
-            .populate('usuario', 'nombre email')
+            .populate('usuario', 'nombre email img')
             //aqui cargo todos los campos de la tabla hospital
             .populate('hospital')
             .exec((err, medicos_arreglo) => {
@@ -112,7 +112,7 @@ function buscarMedicos(palabrabusqueda, expresionregular) {
 
 function buscarUsuarios(palabrabusqueda, expresionregular) {
     return new Promise((resolve, reject) => { // Retorno una promesa de la funcion
-        Usuario.find({}, 'nombre email role') //Aqui solo quiero que me despliegue de usuarios el nombre email role
+        Usuario.find({}, 'nombre email role img') //Aqui solo quiero que me despliegue de usuarios el nombre email role
             .or([{ 'nombre': expresionregular }, { 'email': expresionregular }]) //aqui la pablabra para buscar va a buscar por nombr e email
             .exec((err, usuarios_arreglo) => {
                 if (err) {
