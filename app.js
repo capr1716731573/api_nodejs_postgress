@@ -6,13 +6,13 @@ var bodyParser = require('body-parser');
 
 //importar rutas
 var appRoutes = require('./routes/app');
-var usuarioRoutes = require('./routes/usuario');
-var loginRoutes = require('./routes/login');
-var hospitalRoutes = require('./routes/hospital');
-var medicoRoutes = require('./routes/medico');
-var busquedaRoutes = require('./routes/busquedatodo');
-var uploadRoutes = require('./routes/upload');
-var desplegarImagenesuploadRoutes = require('./routes/desplegar_imagenes');
+var usuarioRoutes = require('./routes2/usuario');
+var loginRoutes = require('./routes2/login');
+var hospitalRoutes = require('./routes2/hospital');
+var medicoRoutes = require('./routes2/medico');
+var busquedaRoutes = require('./routes2/busquedatodo');
+var uploadRoutes = require('./routes2/upload');
+var desplegarImagenesuploadRoutes = require('./routes2/desplegar_imagenes');
 
 //Inicializar variables 
 var app = express();
@@ -31,12 +31,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 //Configuracion 3 --> Conexion a la Base de Datos
-moongose.connection.openUri('mongodb://localhost:27017/hospitalDB', (err, res) => {
+/* moongose.connection.openUri('mongodb://localhost:27017/hospitalDB', (err, res) => {
     if (err) throw err;
 
     console.log('Base de Datos: \x1b[32m%s\x1b[0m', 'online');
 
-});
+}); */
 
 
 //Rutas

@@ -111,7 +111,7 @@ function buscarMedicos(palabrabusqueda, expresionregular) {
 
 function buscarUsuarios(palabrabusqueda, expresionregular) {
     return new Promise((resolve, reject) => { // Retorno una promesa de la funcion
-        consulta = `SELECT * FROM usuarios WHERE nombre LIKE '%${palabrabusqueda}%' AND email LIKE '%${palabrabusqueda}%'`;
+        consulta = `SELECT * FROM usuarios WHERE nombre LIKE '%${palabrabusqueda}%' OR email LIKE '%${palabrabusqueda}%'`;
         pool.query(consulta, (err, response) => {
             if (err) {
                 reject('Error al cargar datos de Usuarios', err);
